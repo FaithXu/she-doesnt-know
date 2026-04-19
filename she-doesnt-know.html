@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>她不太会 · 母女关系探索</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+:root {
+  --bg: #faf5f0;
+  --card: rgba(255,255,255,0.92);
+  --text: #2d2926;
+  --text-muted: #7a6e68;
+  --text-light: #a09690;
+  --accent: #c4717a;
+  --accent-bg: #fcefee;
+  --accent-hover: #b05a65;
+  --warm: #e8a87c;
+  --warm-bg: #fef5ee;
+  --border: rgba(0,0,0,0.07);
+  --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --radius: 20px;
+  --font: 'Noto Sans SC', -apple-system, sans-serif;
+  --tr: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  min-height: 100vh;
+  background: linear-gradient(160deg, #fdf6f3 0%, #f9ede7 40%, #f5f0eb 100%);
+  background-attachment: fixed;
+  padding: 0 16px 80px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+#intro-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  animation: fa 1s ease;
+}
+.intro-emoji { font-size: 64px; margin-bottom: 24px; animation: float 4s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.intro-title { font-size: clamp(2rem,6vw,3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; }
+.intro-subtitle { font-size: 1rem; color: var(--text-muted); margin-bottom: 36px; font-weight: 300; }
+.intro-body {
+  max-width: 480px; font-size: 14.5px; color: var(--text-muted); line-height: 2;
+  margin-bottom: 40px; background: var(--card); padding: 28px 32px;
+  border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); text-align: left;
+}
+.intro-body p { margin-bottom: 12px; }
+.intro-body p:last-child { margin-bottom: 0; font-style: italic; color: var(--text-light); }
+.intro-caution {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fff8f0; border: 1px solid #f0d8c0; color: #a06030;
+  font-size: 12px; padding: 6px 14px; border-radius: 20px; margin-bottom: 28px;
+}
+.btn-start {
+  background: var(--accent); color: white; border: none;
+  padding: 14px 48px; border-radius: 50px;
+  font-size: 15px; font-weight: 600; font-family: var(--font);
+  cursor: pointer; transition: var(--tr);
+  box-shadow: 0 4px 16px rgba(196,113,122,0.3);
+}
+.btn-start:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(196,113,122,0.4); }
+@keyframes fa { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+#progress-bar { position:fixed; top:0; left:0; right:0; height:3px; background:rgba(0,0,0,0.06); z-index:100; display:none; }
+#progress-fill { height:100%; background:linear-gradient(to right,var(--accent),var(--warm)); transition:width 0.6s cubic-bezier(0.4,0,0.2,1); }
+#game-screen { max-width:680px; margin:0 auto; padding-top:48px; display:none; }
+.stage-header { text-align:center; margin-bottom:32px; animation:fa 0.6s ease; }
+.stage-num { font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+.stage-title { font-size:clamp(1.5rem,5vw,2rem); font-weight:700; letter-spacing:-0.02em; margin-bottom:8px; }
+.stage-prompt { font-size:13.5px; color:var(--text-muted); font-weight:300; line-height:1.9; }
+.oracle-section { display:flex; flex-direction:column; align-items:center; margin-bottom:28px; }
+.oracle-label { font-size:11px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-light); margin-bottom:14px; }
+.oracle-cards { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+.oracle-card {
+  width:72px; height:96px; background:white; border-radius:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.1); border:2px solid transparent;
+  cursor:pointer; transition:var(--tr); display:flex; align-items:center;
+  justify-content:center; font-size:28px; position:relative; overflow:hidden;
+}
+.oracle-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.4),transparent); pointer-events:none; }
+.oracle-card:hover { transform:translateY(-4px) scale(1.04); box-shadow:0 8px 24px rgba(0,0,0,0.15); }
+.oracle-card.sel { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg),0 8px 24px rgba(196,113,122,0.25); transform:translateY(-2px); }
+.oracle-card .cb { position:absolute; inset:0; background:linear-gradient(135deg,#f5ede8,#ede4dd); display:flex; align-items:center; justify-content:center; border-radius:10px; }
+.oracle-card.cf { display:none; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center; gap:2px; padding:6px; }
+.oracle-card.flipped .cb { display:none; }
+.oracle-card.flipped .cf { display:flex; }
+.oracle-card.dim { opacity:0.4; pointer-events:none; }
+.oracle-card-label { font-size:10px; color:var(--text-muted); text-align:center; font-weight:500; }
+.items-section { margin-bottom:28px; }
+.items-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:12px; text-align:center; }
+.items-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+.item-btn {
+  display:flex; align-items:center; gap:8px; padding:12px 14px;
+  background:white; border:1.5px solid var(--border); border-radius:12px;
+  cursor:pointer; font-size:13px; font-family:var(--font); color:var(--text);
+  text-align:left; transition:var(--tr);
+}
+.item-btn:hover { border-color:var(--accent); background:var(--accent-bg); }
+.item-btn.sel { border-color:var(--accent); background:var(--accent-bg); color:var(--accent); box-shadow:0 0 0 2px rgba(196,113,122,0.2); }
+.item-btn .item-icon { font-size:18px; flex-shrink:0; }
+.write-section { margin-bottom:28px; }
+.write-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:10px; }
+.write-area {
+  width:100%; min-height:100px; padding:14px 16px;
+  border:1.5px solid #e8e0da; border-radius:14px; font-size:14px;
+  font-family:var(--font); color:var(--text); background:white;
+  resize:vertical; line-height:1.9; outline:none; transition:var(--tr);
+}
+.write-area:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+.write-area::placeholder { color:var(--text-light); }
+.body-section { margin-bottom:28px; }
+.body-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:10px; text-align:center; }
+.body-parts { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+.body-part {
+  padding:7px 14px; border-radius:20px; border:1.5px solid #e0d8d2;
+  background:white; font-size:13px; cursor:pointer; font-family:var(--font);
+  color:var(--text-muted); transition:var(--tr);
+}
+.body-part:hover { border-color:var(--warm); color:var(--warm); }
+.body-part.sel { background:var(--warm-bg); border-color:var(--warm); color:#b06020; font-weight:600; }
+.grid-section { margin-bottom:28px; }
+.grid-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:12px; text-align:center; }
+.emotion-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+.emotion-cell {
+  padding:14px 16px; border-radius:14px; border:1.5px solid var(--border);
+  background:white; font-size:13px; cursor:pointer; font-family:var(--font);
+  color:var(--text); text-align:center; line-height:1.6; transition:var(--tr);
+}
+.emotion-cell:hover { border-color:var(--accent); transform:translateY(-1px); }
+.emotion-cell.sel { background:var(--accent-bg); border-color:var(--accent); color:var(--accent); font-weight:600; }
+.emotion-cell .ei { font-size:20px; display:block; margin-bottom:4px; }
+.letter-section { margin-bottom:32px; }
+.letter-label { font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:10px; text-align:center; }
+.letter-area {
+  width:100%; min-height:140px; padding:16px; border:1.5px solid #e8e0da;
+  border-radius:14px; font-size:14px; font-family:var(--font); color:var(--text);
+  background:white; resize:vertical; line-height:2; outline:none; transition:var(--tr);
+}
+.letter-area:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+.transition-card {
+  background:var(--card); border-radius:var(--radius); padding:36px 32px;
+  box-shadow:var(--shadow); border:1px solid var(--border); text-align:center; margin-bottom:24px; animation:fa 0.6s ease;
+}
+.transition-card .ti { font-size:48px; margin-bottom:16px; }
+.transition-card h2 { font-size:1.4rem; font-weight:700; margin-bottom:10px; }
+.transition-card p { font-size:13.5px; color:var(--text-muted); font-weight:300; line-height:1.9; max-width:400px; margin:0 auto; }
+.td { width:40px; height:2px; background:linear-gradient(to right,var(--accent),var(--warm)); border-radius:2px; margin:0 auto 24px; }
+.nav-buttons { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:8px; }
+.btn-next {
+  background:var(--accent); color:white; border:none; padding:12px 36px;
+  border-radius:50px; font-size:14px; font-weight:600; font-family:var(--font);
+  cursor:pointer; transition:var(--tr); box-shadow:0 4px 16px rgba(196,113,122,0.3);
+}
+.btn-next:hover { background:var(--accent-hover); transform:translateY(-1px); }
+.btn-next:disabled { background:#e0d8d2; color:var(--text-light); cursor:not-allowed; box-shadow:none; transform:none; }
+.btn-back {
+  background:white; color:var(--text-muted); border:1.5px solid #e0d8d2;
+  padding:12px 24px; border-radius:50px; font-size:14px; font-weight:500;
+  font-family:var(--font); cursor:pointer; transition:var(--tr);
+}
+.btn-back:hover { border-color:var(--accent); color:var(--accent); }
+#end-screen { max-width:580px; margin:0 auto; padding-top:60px; display:none; text-align:center; animation:fa 0.8s ease; }
+.end-card { background:var(--card); border-radius:var(--radius); padding:48px 36px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:24px; }
+.end-icon { font-size:64px; margin-bottom:20px; }
+.end-title { font-size:1.8rem; font-weight:700; margin-bottom:8px; }
+.end-sub { font-size:13.5px; color:var(--text-muted); margin-bottom:32px; font-weight:300; }
+.end-summary { background:var(--accent-bg); border-radius:16px; padding:24px; text-align:left; margin-bottom:24px; }
+.end-summary-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent); margin-bottom:14px; }
+.end-item { display:flex; gap:10px; font-size:13px; padding:8px 0; border-bottom:1px solid rgba(196,113,122,0.15); color:var(--text-muted); }
+.end-item:last-child { border-bottom:none; }
+.end-letter { background:white; border-radius:14px; padding:20px; text-align:left; font-size:13.5px; color:var(--text-muted); line-height:2; font-style:italic; margin-bottom:24px; border:1px solid var(--border); min-height:80px; white-space:pre-wrap; }
+.end-quote { font-size:14px; color:var(--text-light); line-height:1.9; margin-bottom:28px; font-weight:300; }
+.btn-restart { background:white; color:var(--accent); border:1.5px solid var(--accent); padding:12px 32px; border-radius:50px; font-size:14px; font-weight:600; font-family:var(--font); cursor:pointer; transition:var(--tr); }
+.btn-restart:hover { background:var(--accent-bg); }
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--text); color:white; padding:10px 20px; border-radius:24px;
+  font-size:13px; z-index:999; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); pointer-events:none;
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+@media(max-width:480px) {
+  .oracle-card{width:60px;height:80px;font-size:22px;}
+  .items-grid,.emotion-grid{grid-template-columns:1fr 1fr;}
+  .intro-body{padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+
+<div id="intro-screen">
+  <div class="intro-emoji">🌸</div>
+  <h1 class="intro-title">她不太会</h1>
+  <p class="intro-subtitle">一个关于母女的游戏</p>
+  <div class="intro-body">
+    <p>这不是一个教你"原谅"的游戏。</p>
+    <p>也不是一个教你"放下"的游戏。</p>
+    <p>这是一次——你和你自己的，关于她的对话。</p>
+    <p>五个阶段，抽取一些卡，写一些字。</p>
+    <p>可能会有一点点难过。如果还没有准备好，可以先退出去。</p>
+    <p>如果有，就慢慢来。</p>
+  </div>
+  <div class="intro-caution">⚠️ 内容涉及母女关系，可能触发情绪反应</div>
+  <button class="btn-start" onclick="startGame()">我准备好了，开始吧 →</button>
+</div>
+
+<div id="game-screen"></div>
+
+<div id="end-screen">
+  <div class="end-card">
+    <div class="end-icon">🌿</div>
+    <h2 class="end-title">你走完了这段路</h2>
+    <p class="end-sub">你写下的，都是真实的</p>
+    <div class="end-summary" id="endSummary"></div>
+    <div class="end-letter" id="endLetter"></div>
+    <p class="end-quote">"离开那些告诉你，你应该是什么样的人。走远一点，远到你能回头看见自己。"</p>
+    <button class="btn-restart" onclick="restartGame()">再走一遍</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// 数据
+// ════════════════════════════════════════════════════════
+const MC = [
+  {i:'🪴',l:'守护'},{i:'🔑',l:'钥匙'},{i:'🥣',l:'一碗汤'},{i:'🧵',l:'缝补'},
+  {i:'📦',l:'旧物'},{i:'🌧️',l:'雨天'},{i:'🪞',l:'镜子'},{i:'🕯️',l:'灯'},
+  {i:'✂️',l:'剪裁'},{i:'🪢',l:'打结'},{i:'🚪',l:'门'},{i:'🧤',l:'手套'},
+  {i:'🩹',l:'创可贴'},{i:'🌊',l:'海'},{i:'🍃',l:'叶子'},{i:'🪨',l:'石头'},
+  {i:'🏺',l:'罐子'},{i:'🦋',l:'蝴蝶'},
+];
+const SC = [
+  {i:'🌱',l:'种子'},{i:'🌀',l:'漩涡'},{i:'🔮',l:'水晶'},{i:'🌙',l:'月亮'},
+  {i:'🕯️',l:'蜡烛'},{i:'🫧',l:'气泡'},{i:'🌊',l:'浪'},{i:'🔥',l:'火'},
+  {i:'❄️',l:'冰'},{i:'🌾',l:'麦子'},{i:'🪨',l:'岩石'},{i:'🌸',l:'花'},
+  {i:'🕸️',l:'网'},{i:'🧭',l:'罗盘'},{i:'🌌',l:'银河'},{i:'🪞',l:'镜像'},
+  {i:'🫐',l:'果实'},{i:'🪁',l:'风筝'},
+];
+const EC = [
+  {i:'❤️',l:'我爱她'},{i:'💔',l:'她伤过我'},{i:'🏃',l:'我需要离开一点'},
+  {i:'🍃',l:'我想念她'},{i:'🔍',l:'我不确定'},{i:'✊',l:'我恨她'},
+];
+const BP=['胸口','喉咙','肩膀','胃','手','眼睛','后背','膝盖','头','腿','脖子','心口'];
+const IM=[
+  {i:'🪡',n:'一根针'},{i:'🗝️',n:'一把钥匙'},{i:'🩹',n:'一片创可贴'},
+  {i:'🥣',n:'一碗汤'},{i:'👕',n:'一件旧衣服'},{i:'📱',n:'一条短信'},
+  {i:'🌂',n:'一把旧伞'},{i:'🧣',n:'一条围巾'},
+];
+const IS=[
+  {i:'🎒',n:'一个旧背包'},{i:'📓',n:'一本日记'},{i:'🎧',n:'一首歌'},
+  {i:'🖼️',n:'一张照片'},{i:'✉️',n:'一封没寄出的信'},{i:'🧸',n:'一个旧玩具'},
+  {i:'🎫',n:'一张票根'},{i:'🌿',n:'一片叶子'},
+];
+
+const ST={
+  s1:{c:null,it:null,m:''},
+  s2:{c:null,it:null,w:''},
+  s3:{c:null,bp:null,mm:''},
+  s4:{em:[],lt:''},
+  s5:{blank:''}, // 我允许自己
+};
+
+function sf(a){const b=[...a];for(let j=b.length-1;j>0;j--){const k=Math.floor(Math.random()*(j+1));[b[j],b[k]]=[b[k],b[j]];}return b;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function sp(p){document.getElementById('progress-fill').style.width=p+'%';}
+function cg(){document.getElementById('game-screen').innerHTML='';}
+function es(d){document.getElementById('game-screen').style.display=d?'block':'none';}
+
+// ════════════════════════════════════════════════════════
+// 开场
+// ════════════════════════════════════════════════════════
+function startGame(){
+  document.getElementById('intro-screen').style.display='none';
+  es(true); document.getElementById('progress-bar').style.display='block';
+  renderS1();
+}
+
+// ════════════════════════════════════════════════════════
+// S1
+// ════════════════════════════════════════════════════════
+function renderS1(){
+  cg(); sp(10);
+  const cs=sf(MC).slice(0,6);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="stage-header">
+      <div class="stage-num">第一关 · 她</div>
+      <h2 class="stage-title">真实的她</h2>
+      <p class="stage-prompt">抽一张卡——这张卡代表了你记忆里，她的某种质地。<br>不用解释，信任第一直觉。</p>
+    </div>
+    <div class="oracle-section">
+      <div class="oracle-label">抽取母亲卡</div>
+      <div class="oracle-cards" id="oc1">
+        ${cs.map((c,n)=>`<div class="oracle-card" onclick="fc1(this,'${c.i}','${c.l}')">
+          <div class="cb"><span style="font-size:20px;opacity:0.4">?</span></div>
+          <div class="cf"><span>${c.i}</span><span class="oracle-card-label">${c.l}</span></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="items-section" id="it1" style="display:none">
+      <div class="items-label">选一样东西——她曾经给过你的，或者你们之间有关联的</div>
+      <div class="items-grid">
+        ${IM.map((it,n)=>`<button class="item-btn" onclick="si1(this,'${it.i}','${it.n}')">
+          <span class="item-icon">${it.i}</span><span class="item-name">${it.n}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+    <div class="write-section" id="wr1" style="display:none">
+      <div class="write-label">写一件很小的事，你记得的，关于她的</div>
+      <textarea class="write-area" id="ta1"
+        placeholder="比如：她每次出门前都会帮我把鞋带系好…
+或者：她生病的时候特别安静，一个人躺着…"
+        oninput="ST.s1.m=this.value"></textarea>
+    </div>
+    <div class="nav-buttons" id="nv1" style="display:none">
+      <button class="btn-back" onclick="renderS1()">← 重填</button>
+      <button class="btn-next" onclick="goT(1)">继续 →</button>
+    </div>
+  `;
+}
+
+function fc1(el,i,l){
+  el.classList.add('flipped','sel');
+  el.parentElement.querySelectorAll('.oracle-card').forEach(c=>{if(c!==el)c.classList.add('dim');});
+  ST.s1.c={i,l};
+  document.getElementById('it1').style.display='block';
+  document.getElementById('it1').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function si1(el,i,n){
+  el.parentElement.querySelectorAll('.item-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); ST.s1.it={i,n};
+  document.getElementById('wr1').style.display='block';
+  document.getElementById('wr1').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>document.getElementById('nv1').style.display='flex',200);
+}
+
+// ════════════════════════════════════════════════════════
+// 过渡1
+// ════════════════════════════════════════════════════════
+function goT(n){
+  if(n===1){if(!ST.s1.c||!ST.s1.it||!ST.s1.m.trim()){toast('还没有填完哦');return;}renderT1();}
+  else if(n===2){if(!ST.s2.c||!ST.s2.it||!ST.s2.w.trim()){toast('还没有填完哦');return;}renderT2();}
+  else if(n===3){if(!ST.s3.c||!ST.s3.bp||!ST.s3.mm.trim()){toast('还没有填完哦');return;}renderT3();}
+  else if(n===4){if(ST.s4.em.length===0){toast('还没有选完哦');return;}renderBlankCard();}
+}
+
+function renderT1(){
+  cg(); sp(28);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="transition-card">
+      <div class="ti">${ST.s1.c.i}</div>
+      <div class="td"></div>
+      <h2>${ST.s1.c.l}</h2>
+      <p>这是你心里的她。有时候她就是这样——不是"好母亲"或"坏母亲"，而是有这样一种质地。</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-back" onclick="renderS1()">← 上一关</button>
+      <button class="btn-next" onclick="renderS2()">第二关 →</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════
+// S2
+// ════════════════════════════════════════════════════════
+function renderS2(){
+  cg(); sp(36);
+  const cs=sf(SC).slice(0,6);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="stage-header">
+      <div class="stage-num">第二关 · 我</div>
+      <h2 class="stage-title">我是谁</h2>
+      <p class="stage-prompt">当她不在的时候——或者当她看不见你的时候，你是谁？<br>抽一张卡，诚实地说。</p>
+    </div>
+    <div class="oracle-section">
+      <div class="oracle-label">抽取自我卡</div>
+      <div class="oracle-cards" id="oc2">
+        ${cs.map((c,n)=>`<div class="oracle-card" onclick="fc2(this,'${c.i}','${c.l}')">
+          <div class="cb"><span style="font-size:20px;opacity:0.4">?</span></div>
+          <div class="cf"><span>${c.i}</span><span class="oracle-card-label">${c.l}</span></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="items-section" id="it2" style="display:none">
+      <div class="items-label">选一样你带着的东西，属于你自己的</div>
+      <div class="items-grid">
+        ${IS.map((it,n)=>`<button class="item-btn" onclick="si2(this,'${it.i}','${it.n}')">
+          <span class="item-icon">${it.i}</span><span class="item-name">${it.n}</span>
+        </button>`).join('')}
+      </div>
+    </div>
+    <div class="write-section" id="wr2" style="display:none">
+      <div class="write-label">当她不在的时候，你是谁？</div>
+      <textarea class="write-area" id="ta2"
+        placeholder="不是"我是个好女儿"或"我应该…"。
+是：我其实是谁？我在什么事情里最像我？"
+        oninput="ST.s2.w=this.value"></textarea>
+    </div>
+    <div class="nav-buttons" id="nv2" style="display:none">
+      <button class="btn-back" onclick="renderT1()">← 上一关</button>
+      <button class="btn-next" onclick="goT(2)">继续 →</button>
+    </div>
+  `;
+}
+
+function fc2(el,i,l){
+  el.classList.add('flipped','sel');
+  el.parentElement.querySelectorAll('.oracle-card').forEach(c=>{if(c!==el)c.classList.add('dim');});
+  ST.s2.c={i,l};
+  document.getElementById('it2').style.display='block';
+  document.getElementById('it2').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function si2(el,i,n){
+  el.parentElement.querySelectorAll('.item-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); ST.s2.it={i,n};
+  document.getElementById('wr2').style.display='block';
+  document.getElementById('wr2').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>document.getElementById('nv2').style.display='flex',200);
+}
+
+function renderT2(){
+  cg(); sp(52);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="transition-card">
+      <div class="ti">${ST.s2.c.i}</div>
+      <div class="td"></div>
+      <h2>${ST.s2.c.l}</h2>
+      <p>这是你。在没有她的目光注视你的时候，你最像的那个样子。</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-back" onclick="renderS2()">← 上一关</button>
+      <button class="btn-next" onclick="renderS3()">第三关 →</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════
+// S3
+// ════════════════════════════════════════════════════════
+function renderS3(){
+  cg(); sp(60);
+  const cs=sf(MC).slice(0,6);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="stage-header">
+      <div class="stage-num">第三关 · 那个时刻</div>
+      <h2 class="stage-title">那件事</h2>
+      <p class="stage-prompt">不是"她总是…"<br>是一件具体的、发生过的事。抽一张卡，然后写下来。</p>
+    </div>
+    <div class="oracle-section">
+      <div class="oracle-label">抽取记忆卡</div>
+      <div class="oracle-cards" id="oc3">
+        ${cs.map((c,n)=>`<div class="oracle-card" onclick="fc3(this,'${c.i}','${c.l}')">
+          <div class="cb"><span style="font-size:20px;opacity:0.4">?</span></div>
+          <div class="cf"><span>${c.i}</span><span class="oracle-card-label">${c.l}</span></div>
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="write-section" id="wr3" style="display:none">
+      <div class="write-label">描述那个时刻——具体发生了什么事？</div>
+      <textarea class="write-area" id="ta3" style="min-height:120px"
+        placeholder="不需要解释为什么。只需要描述：什么时候，在哪里，她说了什么或做了什么，你是什么反应。"
+        oninput="ST.s3.mm=this.value"></textarea>
+    </div>
+    <div class="body-section" id="bpSection" style="display:none">
+      <div class="body-label">那个时刻，现在还留在你身体里的哪个地方？</div>
+      <div class="body-parts">
+        ${BP.map(b=>`<button class="body-part" onclick="selBP(this,'${b}')">${b}</button>`).join('')}
+      </div>
+    </div>
+    <div class="nav-buttons" id="nv3" style="display:none">
+      <button class="btn-back" onclick="renderT2()">← 上一关</button>
+      <button class="btn-next" onclick="goT(3)">继续 →</button>
+    </div>
+  `;
+}
+
+function fc3(el,i,l){
+  el.classList.add('flipped','sel');
+  el.parentElement.querySelectorAll('.oracle-card').forEach(c=>{if(c!==el)c.classList.add('dim');});
+  ST.s3.c={i,l};
+  document.getElementById('wr3').style.display='block';
+  document.getElementById('wr3').scrollIntoView({behavior:'smooth',block:'center'});
+  setTimeout(()=>{
+    document.getElementById('bpSection').style.display='block';
+    document.getElementById('bpSection').scrollIntoView({behavior:'smooth',block:'center'});
+  },300);
+}
+
+function selBP(el,bp){
+  document.querySelectorAll('.body-part').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel'); ST.s3.bp=bp;
+  setTimeout(()=>document.getElementById('nv3').style.display='flex',200);
+}
+
+function renderT3(){
+  cg(); sp(76);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="transition-card">
+      <div class="ti">${ST.s3.c.i}</div>
+      <div class="td"></div>
+      <h2>那个时刻 · ${ST.s3.bp}</h2>
+      <p>身体记得的事，有时候比脑子更诚实。<br>它一直都在那里。</p>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-back" onclick="renderS3()">← 上一关</button>
+      <button class="btn-next" onclick="renderS4()">第四关 →</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════
+// S4
+// ════════════════════════════════════════════════════════
+function renderS4(){
+  cg(); sp(86);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="stage-header">
+      <div class="stage-num">第四关 · 新的地图</div>
+      <h2 class="stage-title">新的地图</h2>
+      <p class="stage-prompt">选两个词，放进地图里。<br>不用解释，也不用选择——它们可以同时是真的。</p>
+    </div>
+    <div class="grid-section">
+      <div class="grid-label">选择两个（可以多选）</div>
+      <div class="emotion-grid" id="eg">
+        ${EC.map((e,n)=>`<div class="emotion-cell" onclick="selEm(this,'${e.i}','${e.l}')">
+          <span class="ei">${e.i}</span>${e.l}
+        </div>`).join('')}
+      </div>
+    </div>
+    <div class="letter-section" id="ltSection" style="display:none">
+      <div class="letter-label">最后，写一句话给她。可以是信，可以是短信，可以是一句永远不会说出口的话。</div>
+      <textarea class="letter-area" id="ltInput"
+        placeholder="不用"亲爱的妈妈"开头。
+直接开始写。她会看到的。"
+        oninput="ST.s4.lt=this.value"></textarea>
+    </div>
+    <div class="nav-buttons" id="nv4" style="display:none">
+      <button class="btn-back" onclick="renderT3()">← 上一关</button>
+      <button class="btn-next" onclick="goT(4)">继续 →</button>
+    </div>
+  `;
+}
+
+function selEm(el,i,l){
+  el.classList.toggle('sel');
+  const sel=document.querySelectorAll('#eg .emotion-cell.sel');
+  if(sel.length>0){
+    ST.s4.em=Array.from(sel).map(e=>({i:e.querySelector('.ei').textContent,l:e.textContent.replace(e.querySelector('.ei').textContent,'').trim()}));
+    document.getElementById('ltSection').style.display='block';
+    document.getElementById('ltSection').scrollIntoView({behavior:'smooth',block:'center'});
+    setTimeout(()=>document.getElementById('nv4').style.display='flex',200);
+  } else {
+    ST.s4.em=[];
+    document.getElementById('ltSection').style.display='none';
+    document.getElementById('nv4').style.display='none';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// 空白卡：我允许自己
+// ════════════════════════════════════════════════════════
+function renderBlankCard(){
+  cg(); sp(93);
+  document.getElementById('game-screen').innerHTML=`
+    <div class="stage-header">
+      <div class="stage-num">最后一关 · 你</div>
+      <h2 class="stage-title">我允许自己</h2>
+      <p class="stage-prompt">你已经写完了给她的那些话。<br>现在，只属于你自己的，抽取一张空白卡。<br>写下来就好。</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:32px;">
+      <div style="
+        width:90px;height:120px;background:linear-gradient(135deg,#fdf6f3,#f9ede7);
+        border-radius:14px;border:2px dashed #d8cec8;
+        display:flex;align-items:center;justify-content:center;
+        margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,0.06);
+      ">
+        <span style="font-size:36px;opacity:0.3">✧</span>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-light);margin-bottom:16px;">空白卡</div>
+    </div>
+    <div class="write-section" style="margin-bottom:32px;">
+      <div class="write-label" style="text-align:center;">我允许自己______</div>
+      <textarea class="letter-area" id="blankInput" style="min-height:120px"
+        placeholder="比如：我允许自己有时候想她，有时候不想。
+我允许自己离开一点。
+我允许自己还没有答案。
+我允许自己哭。"
+        oninput="ST.s5.blank=this.value"></textarea>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn-back" onclick="renderS4()">← 上一关</button>
+      <button class="btn-next" onclick="renderEnd()">完成这段旅程 →</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════
+// 完成
+// ════════════════════════════════════════════════════════
+function renderEnd(){
+  es(false); sp(100);
+  document.getElementById('end-screen').style.display='block';
+  const summary=document.getElementById('endSummary');
+  summary.innerHTML=`
+    <div class="end-summary-title">你的旅程记录</div>
+    <div class="end-item"><span>${ST.s1.c.i}</span><span>她：${ST.s1.c.l} · ${ST.s1.it.i} ${ST.s1.it.n}</span></div>
+    <div class="end-item"><span>${ST.s1.m.slice(0,30)}${ST.s1.m.length>30?'…':''}</span></div>
+    <div class="end-item"><span>${ST.s2.c.i}</span><span>我：${ST.s2.c.l} · ${ST.s2.it.i} ${ST.s2.it.n}</span></div>
+    <div class="end-item"><span>${ST.s2.w.slice(0,30)}${ST.s2.w.length>30?'…':''}</span></div>
+    <div class="end-item"><span>${ST.s3.c.i}</span><span>那个时刻 · 留在${ST.s3.bp}</span></div>
+    <div class="end-item"><span>${ST.s3.mm.slice(0,30)}${ST.s3.mm.length>30?'…':''}</span></div>
+    <div class="end-item"><span>${ST.s4.em.map(e=>e.i).join(' ')}</span><span>${ST.s4.em.map(e=>e.l).join(' · ')}</span></div>
+    ${ST.s5.blank ? `<div class="end-item" style="border-top:2px solid rgba(196,113,122,0.3);margin-top:4px;padding-top:12px;">
+      <span>✧</span><span><strong>我允许自己</strong> ${ST.s5.blank}</span>
+    </div>` : ''}
+  `;
+  const letterText = ST.s4.lt
+    ? (ST.s5.blank ? `${ST.s4.lt}\n\n✧ 我允许自己：${ST.s5.blank}` : ST.s4.lt)
+    : (ST.s5.blank ? `✧ 我允许自己：${ST.s5.blank}` : '（还没有写任何话）');
+  document.getElementById('endLetter').textContent = letterText;
+}
+
+function restartGame(){
+  Object.assign(ST,{s1:{c:null,it:null,m:''},s2:{c:null,it:null,w:''},s3:{c:null,bp:null,mm:''},s4:{em:[],lt:''},s5:{blank:''}});
+  document.getElementById('end-screen').style.display='none';
+  document.getElementById('progress-bar').style.display='none';
+  document.getElementById('intro-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
